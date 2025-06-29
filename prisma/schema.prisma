@@ -1,0 +1,99 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  USER
+  ADMIN
+  MODERATOR
+}
+
+model User {
+  id               String   @id @default(cuid())
+  email            String   @unique
+  phone_number     String?  @unique
+  password_hash    String
+  first_name       String?
+  last_name        String?
+  role             UserRole @default(USER)
+  interests        String[]
+  education_level  String?
+  experience_years Int?
+  created_at       DateTime @default(now())
+  updated_at       DateTime @updatedAt
+
+  click_logs    ClickLog[]
+  ai_logs       AILog[]
+  opportunities Opportunity[] @relation("CreatedOpportunities")
+
+  @@map("users")
+}
+
+model Opportunity {
+  id              String    @id @default(cuid())
+  title           String
+  description     String
+  category_id     String
+  source_url      String
+  application_url String
+  location        String?
+  deadline        DateTime?
+  is_approved     Boolean   @default(false)
+  created_by_id   String?
+  created_at      DateTime  @default(now())
+  updated_at      DateTime  @updatedAt
+
+  category   Category   @relation(fields: [category_id], references: [id])
+  created_by User?      @relation("CreatedOpportunities", fields: [created_by_id], references: [id])
+  click_logs ClickLog[]
+
+  @@map("opportunies")
+}
+
+model Category {
+  id         String   @id @default(cuid())
+  name       String   @unique
+  slug       String   @unique
+  created_at DateTime @default(now())
+
+  opportunities Opportunity[]
+
+  @@map("categories")
+}
+
+model ClickLog {
+  id             String   @id @default(cuid())
+  user_id        String
+  opportunity_id String
+  clicked_at     DateTime @default(now())
+  location       String?
+
+  user        User        @relation(fields: [user_id], references: [id])
+  opportunity Opportunity @relation(fields: [opportunity_id], references: [id])
+
+  @@map("click_logs")
+}
+
+model AILog {
+  id         String   @id @default(cuid())
+  user_id    String
+  message    String
+  response   String
+  channel    String // "web", "whatsapp", etc.
+  created_at DateTime @default(now())
+
+  user User @relation(fields: [user_id], references: [id])
+
+  @@map("ai_logs")
+}
