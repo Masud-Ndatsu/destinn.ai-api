@@ -6,12 +6,10 @@ import { UsersModule } from './users/users.module';
 import { PrismaService } from './prisma/prisma.service';
 import { UtilsModule } from './utils/utils.module';
 import { OpportunitiesModule } from './opportunities/opportunities.module';
-import { CategoriesModule } from './categories/categories.module';
-import { CategoriesService } from './opportunites/categories/categories.service';
-import { CategoriesService } from './opportunites/categories/categories.service';
+import { CategoriesService } from './opportunities/categories/categories.service';
 
 @Module({
-  imports: [AuthModule, UsersModule, UtilsModule, OpportunitiesModule, CategoriesModule],
+  imports: [AuthModule, UsersModule, UtilsModule, OpportunitiesModule],
   controllers: [AppController],
   providers: [AppService, PrismaService, CategoriesService],
 })

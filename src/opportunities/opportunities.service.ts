@@ -55,10 +55,10 @@ export class OpportunitiesService {
       throw new ConflictException('Opportunity already exists');
     }
 
-    const newOpportunity = await this.create({
-      data:  {
-        category_id:
-      }
-    })
+    // const newOpportunity = await this.create({
+    //   data:  {
+    //     category_id:
+    //   }
+    // })
   }
 }
