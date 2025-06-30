@@ -11,14 +11,15 @@ export class CategoriesService {
     return this.prisma.category.create(dto);
   }
 
-  findAll() {
-    return this.prisma.category.findMany({
-      orderBy: { created_at: 'desc' },
+  async findAll() {
+    const cats = await this.prisma.category.findMany({
+      // orderBy: { created_at: 'desc' },
     });
+    return cats;
   }
 
-  findOne(id: string) {
-    return this.prisma.category.findUnique({ where: { id } });
+  findOne(filter: Prisma.CategoryFindFirstArgs) {
+    return this.prisma.category.findFirst(filter);
   }
 
   async update(id: string, dto: UpdateCategoryDto) {
