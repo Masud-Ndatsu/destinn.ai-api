@@ -1,9 +1,11 @@
-import { IsString, IsNotEmpty, IsDateString } from 'class-validator';
+import { IsDateString, IsString, IsUrl } from 'class-validator';
 
 export class CreateOpportunityDto {
   @IsString()
-  @IsNotEmpty()
   title: string;
+
+  @IsString()
+  description: string;
 
   @IsString()
   company: string;
@@ -14,7 +16,12 @@ export class CreateOpportunityDto {
   @IsDateString()
   deadline: string;
 
+  @IsUrl()
+  link: string;
+
+  @IsUrl()
+  image_url: string;
+
   @IsString()
-  @IsNotEmpty()
-  description: string;
+  category_id: string;
 }

@@ -6,10 +6,14 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateOpportunityDto, UpdateOpportunityDto } from './dtos';
 import { Prisma } from '@prisma/client';
+import { CategoriesService } from './categories/categories.service';
 
 @Injectable()
 export class OpportunitiesService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly categoriesService: CategoriesService,
+  ) {}
 
   create(dto: Prisma.OpportunityCreateArgs) {
     return this.prisma.opportunity.create(dto);
@@ -43,22 +47,40 @@ export class OpportunitiesService {
   }
 
   async createOpportunity(dto: CreateOpportunityDto) {
-    const opportunity = await this.findOne({
+    const existing = await this.findOne({
       where: {
         title: dto.title,
-        deadline: dto.deadline,
+        deadline: new Date(dto.deadline),
         location: dto.location,
       },
     });
 
-    if (opportunity) {
+    if (existing) {
       throw new ConflictException('Opportunity already exists');
     }
 
-    // const newOpportunity = await this.create({
-    //   data:  {
-    //     category_id:
-    //   }
-    // })
+    // Validate category
+    const category = await this.categoriesService.findOne({
+      where: { id: dto.category_id },
+    });
+
+    if (!category) {
+      throw new NotFoundException('Category not found');
+    }
+
+    // Create opportunity
+    const newOpportunity = await this.create({
+      data: {
+        title: dto.title,
+        description: dto.description,
+        location: dto.location,
+        deadline: new Date(dto.deadline),
+        source_url: dto.image_url,
+        application_url: dto.link,
+        category_id: category.id,
+      },
+    });
+
+    return newOpportunity;
   }
 }
