@@ -19,6 +19,12 @@ enum UserRole {
   MODERATOR
 }
 
+enum SourceType {
+  AI
+  ADMIN
+}
+
+
 model User {
   id               String   @id @default(cuid())
   email            String   @unique
@@ -41,7 +47,7 @@ model User {
 }
 
 model Opportunity {
-  id              String    @id @default(cuid())
+  id              String      @id @default(cuid())
   title           String
   description     String
   category_id     String
@@ -49,10 +55,11 @@ model Opportunity {
   application_url String
   location        String?
   deadline        DateTime?
-  is_approved     Boolean   @default(false)
+  is_approved     Boolean     @default(false)
   created_by_id   String?
-  created_at      DateTime  @default(now())
-  updated_at      DateTime  @updatedAt
+  source_type     SourceType  @default(AI)
+  created_at      DateTime    @default(now())
+  updated_at      DateTime    @updatedAt
 
   category   Category   @relation(fields: [category_id], references: [id])
   created_by User?      @relation("CreatedOpportunities", fields: [created_by_id], references: [id])
@@ -60,6 +67,7 @@ model Opportunity {
 
   @@map("opportunies")
 }
+
 
 model Category {
   id         String   @id @default(cuid())
@@ -96,4 +104,19 @@ model AILog {
   user User @relation(fields: [user_id], references: [id])
 
   @@map("ai_logs")
+}
+
+
+model ScrapeTarget {
+  id          String   @id @default(cuid())
+  url         String   @unique
+  platform    String?  
+  label       String?  
+  is_active   Boolean  @default(true)
+  frequency   String?  
+  last_scraped_at DateTime?
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  @@map("scrape_targets")
 }

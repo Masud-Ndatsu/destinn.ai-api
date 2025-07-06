@@ -1,6 +1,9 @@
 -- CreateEnum
 CREATE TYPE "UserRole" AS ENUM ('USER', 'ADMIN', 'MODERATOR');
 
+-- CreateEnum
+CREATE TYPE "SourceType" AS ENUM ('AI', 'ADMIN');
+
 -- CreateTable
 CREATE TABLE "users" (
     "id" TEXT NOT NULL,
@@ -31,6 +34,7 @@ CREATE TABLE "opportunies" (
     "deadline" TIMESTAMP(3),
     "is_approved" BOOLEAN NOT NULL DEFAULT false,
     "created_by_id" TEXT,
+    "source_type" "SourceType" NOT NULL DEFAULT 'AI',
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
 
