@@ -19,14 +19,15 @@ export class OpportunitiesService {
     return this.prisma.opportunity.create(dto);
   }
 
-  findAll() {
-    return this.prisma.opportunity.findMany({
-      orderBy: { created_at: 'desc' },
-    });
+  findAll(filter?: Prisma.OpportunityFindManyArgs) {
+    return this.prisma.opportunity.findMany(filter);
   }
 
-  findOne(query: Prisma.OpportunityFindFirstArgs) {
-    return this.prisma.opportunity.findFirst(query);
+  findOne(filter: Prisma.OpportunityFindFirstArgs) {
+    return this.prisma.opportunity.findFirst(filter);
+  }
+  count(filter: Prisma.OpportunityCountArgs) {
+    return this.prisma.opportunity.count(filter);
   }
 
   async update(id: string, dto: UpdateOpportunityDto) {
@@ -35,7 +36,7 @@ export class OpportunitiesService {
 
     return this.prisma.opportunity.update({
       where: { id },
-      data: dto,
+      data: { ...dto, deadline: dto.deadline as string },
     });
   }
 
@@ -47,11 +48,12 @@ export class OpportunitiesService {
   }
 
   async createOpportunity(dto: CreateOpportunityDto) {
+    console.log({ deadline: dto.deadline });
     const existing = await this.findOne({
       where: {
         title: dto.title,
-        deadline: new Date(dto.deadline),
         location: dto.location,
+        ...(dto.deadline ? { deadline: new Date(dto.deadline as string) } : {}),
       },
     });
 
@@ -74,13 +76,36 @@ export class OpportunitiesService {
         title: dto.title,
         description: dto.description,
         location: dto.location,
-        deadline: new Date(dto.deadline),
+        deadline: new Date(dto.deadline as string),
         source_url: dto.image_url,
-        application_url: dto.link,
+        application_url: dto.application_url,
         category_id: category.id,
       },
     });
 
     return newOpportunity;
+  }
+
+  /**
+   * Bulk create opportunities without duplicate or category checks.
+   * Returns an array of created opportunities.
+   */
+  async bulkCreate(opportunities: CreateOpportunityDto[]) {
+    const created = await Promise.all(
+      opportunities.map(async (dto) => {
+        return this.create({
+          data: {
+            title: dto.title,
+            description: dto.description,
+            location: dto.location,
+            deadline: dto.deadline ? new Date(dto.deadline as string) : null,
+            source_url: dto.image_url,
+            application_url: dto.application_url,
+            category_id: dto.category_id,
+          },
+        });
+      }),
+    );
+    return created;
   }
 }
