@@ -55,7 +55,6 @@ ${blockHtml}
 
     try {
       const response = await axios.post(url, body);
-      console.log({ responseStatus: response.status });
       const raw = response.data.candidates?.[0]?.content?.parts?.[0]?.text;
 
       if (!raw) return [];
@@ -65,7 +64,7 @@ ${blockHtml}
 
       return parsed;
     } catch (err: any) {
-      console.error('Gemini parse error', err.message);
+      console.error('Gemini parse error', err);
       return [];
     }
   }

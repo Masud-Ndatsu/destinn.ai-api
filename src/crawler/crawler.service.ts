@@ -1,24 +1,11 @@
-import {
-  Injectable,
-  InternalServerErrorException,
-  Logger,
-} from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import axios from 'axios';
 import * as cheerio from 'cheerio';
 import { AiService } from 'src/ai/ai.service';
-import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class CrawlerService {
-  constructor(
-    private readonly prisma: PrismaService,
-    private readonly aiService: AiService,
-  ) {
-    this.crawlAndCleanOpportunity(
-      'https://www.opportunitiesforafricans.com/category/scholarships/',
-      // 'https://opportunitydesk.org/',
-    );
-  }
+  constructor(private readonly aiService: AiService) {}
 
   private readonly logger = new Logger(CrawlerService.name);
 
@@ -37,7 +24,7 @@ export class CrawlerService {
       return parsedOpportunities;
     } catch (error) {
       this.logger.error(`Failed to crawl ${url}`, error);
-      throw new InternalServerErrorException('Crawler failed');
+      return [];
     }
   }
 
