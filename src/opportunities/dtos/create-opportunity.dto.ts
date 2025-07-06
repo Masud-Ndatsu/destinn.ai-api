@@ -14,10 +14,10 @@ export class CreateOpportunityDto {
   location: string;
 
   @IsDateString()
-  deadline: string;
+  deadline: string | boolean;
 
   @IsUrl()
-  link: string;
+  application_url: string;
 
   @IsUrl()
   image_url: string;

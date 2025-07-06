@@ -10,5 +10,6 @@ import { UtilsModule } from 'src/utils/utils.module';
   imports: [UtilsModule],
   providers: [OpportunitiesService, CategoriesService, PrismaService],
   controllers: [OpportunitiesController, CategoriesController],
+  exports: [OpportunitiesService, CategoriesService, PrismaService],
 })
 export class OpportunitiesModule {}
