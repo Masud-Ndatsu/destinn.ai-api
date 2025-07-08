@@ -3,7 +3,6 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 import { CrawlerService } from '../crawler/crawler.service';
 import { OpportunitiesService } from 'src/opportunities/opportunities.service';
 import { AiService } from 'src/ai/ai.service';
-import { CategoriesService } from 'src/opportunities/categories/categories.service';
 import { CrawlTargetService } from 'src/crawler/crawl-target/crawl-target.service';
 
 @Injectable()
@@ -13,29 +12,28 @@ export class JobsService {
   constructor(
     private readonly crawlerService: CrawlerService,
     private readonly opportunityService: OpportunitiesService,
-    private readonly categoriesService: CategoriesService,
     private readonly aiService: AiService,
     private readonly crawlTargetService: CrawlTargetService,
   ) {}
 
-  @Cron('0 */10 * * * *')
+  @Cron(CronExpression.EVERY_10_MINUTES)
   async scrapeOpportunitiesJob() {
     this.logger.log('🕸️ Starting scraping job...');
 
     const targets = await this.crawlTargetService.getActiveTargets();
 
-    const urls = [
-      'https://www.opportunitiesforafricans.com/category/scholarships/',
-    ];
+    this.logger.debug({ targets });
 
-    if (!targets.length) return;
+    if (!targets.length) {
+      this.logger.warn('No active crawl target url');
+      return;
+    }
 
-    for (const target of targets) {
+    for (const { url, id } of targets) {
       try {
         // 1. Crawl and parse new opportunities from the URL
         const crawledOpportunities =
-          await this.crawlerService.crawlAndCleanOpportunity(target.url);
-        this.logger.debug({ crawledOpportunities });
+          await this.crawlerService.crawlAndCleanOpportunity(url);
 
         // 2. Fetch all existing opportunities from the DB
         const existingOpportunities = await this.opportunityService.findAll();
@@ -45,7 +43,6 @@ export class JobsService {
           crawledOpportunities,
           existingOpportunities,
         );
-        this.logger.debug({ uniqueOpportunities });
 
         // 4. Prepare DTOs for bulk create
         const dtos = uniqueOpportunities.map((opp) => ({
@@ -65,10 +62,12 @@ export class JobsService {
         dtos.forEach((opp) => {
           this.logger.log(`✅ Opportunity saved: ${opp.title}`);
         });
+        await this.crawlTargetService.update({
+          where: { id },
+          data: { is_active: false },
+        });
       } catch (error) {
-        this.logger.error(
-          `❌ Error processing URL ${target.url}: ${error.message}`,
-        );
+        this.logger.error(`❌ Error processing URL ${url}: ${error.message}`);
       }
     }
 

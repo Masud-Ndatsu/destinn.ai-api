@@ -1,14 +1,17 @@
 import axios from 'axios';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ParsedOpportunity } from './ai.interface';
 import { CategoriesService } from 'src/opportunities/categories/categories.service';
 import { Opportunity } from '@prisma/client';
+import { GoogleGenAI, Type } from '@google/genai';
+
+const ai = new GoogleGenAI({});
 
 @Injectable()
 export class AiService {
   private readonly apiKey = process.env.GEMINI_API_KEY!;
-  private readonly baseUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${this.apiKey}`;
-
+  private readonly baseUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${this.apiKey}`;
+  private readonly logger = new Logger(AiService.name);
   constructor(private readonly categoriesService: CategoriesService) {}
 
   async parseBlockToOpportunities(
@@ -28,11 +31,11 @@ For each opportunity, return a JSON object with the following fields:
 
 "title": A concise, descriptive name of the opportunity. (REQUIRED)
 "description": A brief summary of the opportunity, typically the first 2-3 sentences. (REQUIRED)
-"deadline": The application deadline in YYYY-MM-DD format. If not found, provide a  false boolean value.
+"deadline": The application deadline in YYYY-MM-DD format. If not found, provide a false boolean value.
 "application_url": The full, absolute URL to apply. Prioritize direct application links. (REQUIRED)
-"location": The primary work location (e.g., "New York, NY", "Remote", "Multiple Cities"). If multiple are listed, list all.
+"location": The primary work location (e.g., "New York, NY", "Remote", "Multiple Cities"). If multiple are listed, list all. If not found, use "Not Specified".
 "tags": An array of relevant keywords or categories, in lowercase. Include terms like "internship", "full-time", "part-time", "remote", "entry-level", "senior", "finance", "tech", "marketing", etc., if present. If no tags are found, return an empty array.
-"category_id": From the list below, select the Category ID that best matches the opportunity. If no clear match, use "OTHER".
+"category_id": From the list below, select the Category ID that best matches the opportunity. If no clear match, remove the opportunity.
 "thumbnail_url": The URL of the main image or thumbnail associated with the opportunity. If not found, provide an empty string.
 
 Available Categories:
@@ -51,20 +54,68 @@ ${blockHtml}
           parts: [{ text: prompt }],
         },
       ],
+      generationConfig: {
+        responseMimeType: 'application/json',
+        responseSchema: {
+          type: 'ARRAY',
+          items: {
+            type: 'OBJECT',
+            properties: {
+              title: { type: 'STRING' },
+              description: { type: 'STRING' },
+              deadline: {
+                oneOf: [{ type: 'STRING' }, { type: 'BOOLEAN' }],
+              },
+              application_url: { type: 'STRING' },
+              location: { type: 'STRING' },
+              tags: {
+                type: 'ARRAY',
+                items: { type: 'STRING' },
+              },
+              category_id: { type: 'STRING' },
+              thumbnail_url: { type: 'STRING' },
+            },
+            required: [
+              'title',
+              'description',
+              'deadline',
+              'application_url',
+              'location',
+              'tags',
+              'category_id',
+              'thumbnail_url',
+            ],
+          },
+        },
+      },
     };
 
     try {
+      this.logger.log('Sending HTML block to Gemini for parsing...');
       const response = await axios.post(url, body);
       const raw = response.data.candidates?.[0]?.content?.parts?.[0]?.text;
+      this.logger.debug({ raw });
 
-      if (!raw) return [];
-      const jsonString = this.cleanAIResponse(raw);
-      const parsed = JSON.parse(jsonString);
-      if (!Array.isArray(parsed)) return [];
+      if (!raw) {
+        this.logger.warn('Gemini returned no content for parsing.');
+        return [];
+      }
 
+      const parsed = JSON.parse(raw);
+      this.logger.debug({ parsed });
+      if (!Array.isArray(parsed)) {
+        this.logger.warn('Gemini response was not an array.');
+        return [];
+      }
+      this.logger.log(
+        `Gemini successfully parsed ${parsed.length} opportunities.`,
+      );
       return parsed;
     } catch (err: any) {
-      console.error('Gemini parse error', err);
+      this.logger.error(
+        'Gemini parse error',
+        err.response?.data || err.message,
+      );
       return [];
     }
   }

@@ -6,8 +6,10 @@ import { CategoriesService } from 'src/opportunities/categories/categories.servi
 import { AiService } from 'src/ai/ai.service';
 import { CrawlTargetService } from './crawl-target/crawl-target.service';
 import { CrawlTargetController } from './crawl-target/crawl-target.controller';
+import { UtilsModule } from 'src/utils/utils.module';
 
 @Module({
+  imports: [UtilsModule],
   providers: [
     CrawlerService,
     OpportunitiesService,

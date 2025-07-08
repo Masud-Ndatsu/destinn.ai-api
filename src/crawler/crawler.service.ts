@@ -45,7 +45,7 @@ export class CrawlerService {
 
       return aiLink;
     } catch (err) {
-      console.error('Link extraction error:', err.message);
+      this.logger.error('Link extraction error:', err.message);
       return null;
     }
   }
