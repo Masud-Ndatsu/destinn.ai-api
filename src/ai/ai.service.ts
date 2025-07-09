@@ -94,7 +94,6 @@ ${blockHtml}
       this.logger.log('Sending HTML block to Gemini for parsing...');
       const response = await axios.post(url, body);
       const raw = response.data.candidates?.[0]?.content?.parts?.[0]?.text;
-      this.logger.debug({ raw });
 
       if (!raw) {
         this.logger.warn('Gemini returned no content for parsing.');
