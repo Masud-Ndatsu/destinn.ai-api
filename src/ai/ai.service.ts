@@ -31,7 +31,7 @@ For each opportunity, return a JSON object with the following fields:
 
 "title": A concise, descriptive name of the opportunity. (REQUIRED)
 "description": A brief summary of the opportunity, typically the first 2-3 sentences. (REQUIRED)
-"deadline": The application deadline in YYYY-MM-DD format. If not found, provide a false boolean value.
+"deadline": The application deadline in YYYY-MM-DD format. If the deadline has already passed based on the current date, or if no deadline is found, provide a false boolean value.
 "application_url": The full, absolute URL to apply. Prioritize direct application links. (REQUIRED)
 "location": The primary work location (e.g., "New York, NY", "Remote", "Multiple Cities"). If multiple are listed, list all. If not found, use "Not Specified".
 "tags": An array of relevant keywords or categories, in lowercase. Include terms like "internship", "full-time", "part-time", "remote", "entry-level", "senior", "finance", "tech", "marketing", etc., if present. If no tags are found, return an empty array.
