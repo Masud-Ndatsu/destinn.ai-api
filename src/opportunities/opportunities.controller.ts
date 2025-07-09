@@ -118,6 +118,9 @@ export class OpportunitiesController {
         skip,
         take: perPage,
         where,
+        orderBy: {
+          created_at: 'desc',
+        },
       }),
       this.opportunitiesService.count({ where }),
     ]);
@@ -143,7 +146,9 @@ export class OpportunitiesController {
     const opportunity = await this.opportunitiesService.findOne({
       where: { id },
     });
-    if (!opportunity) throw new NotFoundException('Opportunity not found');
+    if (!opportunity) {
+      throw new NotFoundException('Opportunity not found');
+    }
     return this.responseService.success(
       'Opportunity fetched successfully',
       opportunity,

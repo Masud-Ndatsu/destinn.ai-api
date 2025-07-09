@@ -73,6 +73,7 @@ model Category {
   id         String   @id @default(cuid())
   name       String   @unique
   slug       String   @unique
+  thumbnail_url  String?
   created_at DateTime @default(now())
 
   opportunities Opportunity[]
