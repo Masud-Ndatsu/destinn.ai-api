@@ -7,11 +7,13 @@ import {
   Put,
   Delete,
   NotFoundException,
+  Query,
 } from '@nestjs/common';
 import { CategoriesService } from './categories.service';
 import { CreateCategoryDto, UpdateCategoryDto } from './dtos';
 import { UtilsService } from 'src/utils/utils.service';
 import { ResponseService } from 'src/utils/response/response.service';
+import { PaginationDto } from 'src/utils/dtos/pagination.dto';
 
 @Controller('categories')
 export class CategoriesController {
@@ -37,11 +39,34 @@ export class CategoriesController {
   }
 
   @Get()
-  async findAll() {
-    const categories = await this.categoriesService.findAll();
+  async findAll(@Query() pagination: PaginationDto) {
+    const { page = 1, perPage = 10 } = pagination;
+    const skip = (page - 1) * perPage;
+    let where = {};
+
+    const [categories, total] = await Promise.all([
+      this.categoriesService.findAll({
+        skip,
+        take: perPage,
+        where,
+      }),
+      this.categoriesService.count({ where }),
+    ]);
+
+    const totalPages = Math.ceil(total / perPage);
+
+    const response = {
+      data: categories,
+      meta: {
+        total,
+        totalPages,
+        currentPage: page,
+        perPage: perPage,
+      },
+    };
     return this.responseService.success(
       'Categories retrieved successfully',
-      categories,
+      response,
     );
   }
 

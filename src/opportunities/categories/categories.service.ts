@@ -11,15 +11,16 @@ export class CategoriesService {
     return this.prisma.category.create(dto);
   }
 
-  async findAll() {
-    const cats = await this.prisma.category.findMany({
-      // orderBy: { created_at: 'desc' },
-    });
+  async findAll(filter?: Prisma.CategoryFindManyArgs) {
+    const cats = await this.prisma.category.findMany(filter);
     return cats;
   }
 
   findOne(filter: Prisma.CategoryFindFirstArgs) {
     return this.prisma.category.findFirst(filter);
+  }
+  count(filter: Prisma.CategoryCountArgs) {
+    return this.prisma.category.count(filter);
   }
 
   async update(id: string, dto: UpdateCategoryDto) {

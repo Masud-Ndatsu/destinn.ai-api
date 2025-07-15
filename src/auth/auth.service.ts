@@ -8,6 +8,7 @@ import * as bcrypt from 'bcrypt';
 import { UsersService } from '../users/users.service';
 import { UserRole } from '@prisma/client';
 import { ResponseService } from 'src/utils/response/response.service';
+import { RegisterDto } from './dtos/register.dto';
 
 @Injectable()
 export class AuthService {
@@ -35,7 +36,8 @@ export class AuthService {
     return this.responseService.success('Logged in successfully', data);
   }
 
-  async register(data: { email: string; password: string; role?: string }) {
+  async register(data: RegisterDto) {
+    console.log({ data });
     const foundUser = await this.usersService.findByEmail(data.email);
 
     if (foundUser) {
@@ -47,6 +49,11 @@ export class AuthService {
       email: data.email,
       password_hash: hashed,
       role: (data.role as UserRole) ?? UserRole.USER,
+      first_name: data.first_name,
+      last_name: data.last_name,
+      education_level: data.education_level,
+      experience_years: data.experience_years,
+      interests: data.interests || [],
     });
 
     return this.responseService.success(
