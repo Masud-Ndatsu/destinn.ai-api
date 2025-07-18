@@ -2,6 +2,7 @@ import {
   ConflictException,
   Injectable,
   UnauthorizedException,
+  NotFoundException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
@@ -9,6 +10,7 @@ import { UsersService } from '../users/users.service';
 import { UserRole } from '@prisma/client';
 import { ResponseService } from 'src/utils/response/response.service';
 import { RegisterDto } from './dtos/register.dto';
+import { UpdateProfileDto } from './dtos/update-profile.dto';
 
 @Injectable()
 export class AuthService {
@@ -37,7 +39,6 @@ export class AuthService {
   }
 
   async register(data: RegisterDto) {
-    console.log({ data });
     const foundUser = await this.usersService.findByEmail(data.email);
 
     if (foundUser) {
@@ -59,6 +60,34 @@ export class AuthService {
     return this.responseService.success(
       'User account registered successfully',
       newUser,
+    );
+  }
+
+  async getProfile(userId: string) {
+    const user = await this.usersService.findById(userId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const { password_hash, ...userProfile } = user;
+    return this.responseService.success(
+      'Profile retrieved successfully',
+      userProfile,
+    );
+  }
+
+  async updateProfile(userId: string, data: UpdateProfileDto) {
+    const user = await this.usersService.findById(userId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const updatedUser = await this.usersService.update(userId, data);
+    const { password_hash, ...userProfile } = updatedUser;
+    
+    return this.responseService.success(
+      'Profile updated successfully',
+      userProfile,
     );
   }
 }

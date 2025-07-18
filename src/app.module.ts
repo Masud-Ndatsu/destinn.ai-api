@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module } from '@nestjs/common';
 import { ScheduleModule } from '@nestjs/schedule';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -11,6 +11,8 @@ import { CategoriesService } from './opportunities/categories/categories.service
 import { CrawlerModule } from './crawler/crawler.module';
 import { AiModule } from './ai/ai.module';
 import { JobsModule } from './jobs/jobs.module';
+import { AdminModule } from './admin/admin.module';
+import { RequestLoggerMiddleware } from './middlewares/request.logger.middleware';
 
 @Module({
   imports: [
@@ -22,8 +24,13 @@ import { JobsModule } from './jobs/jobs.module';
     CrawlerModule,
     AiModule,
     JobsModule,
+    AdminModule,
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService, CategoriesService],
 })
-export class AppModule {}
+export class AppModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(RequestLoggerMiddleware).forRoutes('*');
+  }
+}

@@ -108,4 +108,16 @@ export class OpportunitiesService {
     );
     return created;
   }
+
+  async updateMany(filter: Prisma.OpportunityUpdateManyArgs) {
+    return this.prisma.opportunity.updateMany(filter);
+  }
+
+  async deleteMany(filter: Prisma.OpportunityDeleteManyArgs) {
+    return this.prisma.opportunity.deleteMany(filter);
+  }
+
+  async groupBy(filter: any) {
+    return this.prisma.opportunity.groupBy(filter);
+  }
 }
