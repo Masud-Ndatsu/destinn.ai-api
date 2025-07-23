@@ -14,7 +14,24 @@ const categories = [
 ];
 
 async function main() {
+  console.log('Seeding admin user...');
+  const adminEmail = 'admin@destinn.com';
+  const adminPassword = 'admin123';
+
+  const adminUser = await prisma.user.upsert({
+    where: { email: adminEmail },
+    update: {},
+    create: {
+      email: adminEmail,
+      password_hash: await util.hashPassword(adminPassword),
+      role: 'ADMIN',
+    },
+  });
+
+  console.log(`Admin user created with email: ${adminEmail}`);
+
   console.log('Seeding categories...');
+
   for (const category of categories) {
     const slug = util.slugify(category.name);
     await prisma.category.upsert({

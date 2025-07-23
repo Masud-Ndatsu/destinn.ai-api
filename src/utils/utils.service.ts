@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UtilsService {
@@ -9,5 +10,9 @@ export class UtilsService {
       .trim()
       .replace(/[\s\W-]+/g, '-')
       .replace(/^-+|-+$/g, '');
+  }
+
+  async hashPassword(password: string): Promise<string> {
+    return bcrypt.hash(password, 10);
   }
 }
