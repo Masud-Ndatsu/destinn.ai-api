@@ -116,8 +116,44 @@ model ScrapeTarget {
   is_active   Boolean  @default(true)
   frequency   String?  
   last_scraped_at DateTime?
+  selectors   Json?
+  success_rate Float   @default(95.0)
+  total_opportunities Int @default(0)
+  status      String  @default("active")
+  error_count Int     @default(0)
+  last_error  String?
   created_at  DateTime @default(now())
   updated_at  DateTime @updatedAt
 
+  crawling_jobs CrawlingJob[]
+
   @@map("scrape_targets")
+}
+
+model CrawlingJob {
+  id          String   @id @default(cuid())
+  source_id   String
+  status      String   @default("queued")
+  started_at  DateTime @default(now())
+  completed_at DateTime?
+  found_opportunities Int @default(0)
+  processed_opportunities Int @default(0)
+  errors      Json     @default("[]")
+  duration    Int?     // in seconds
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  source      ScrapeTarget @relation(fields: [source_id], references: [id], onDelete: Cascade)
+
+  @@map("crawling_jobs")
+}
+
+model CrawlingSetting {
+  id           Int      @id @default(autoincrement())
+  setting_key  String   @unique
+  setting_value Json
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+
+  @@map("crawling_settings")
 }

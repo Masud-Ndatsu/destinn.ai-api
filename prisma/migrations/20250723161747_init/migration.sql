@@ -46,6 +46,7 @@ CREATE TABLE "categories" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "slug" TEXT NOT NULL,
+    "thumbnail_url" TEXT,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "categories_pkey" PRIMARY KEY ("id")
@@ -74,6 +75,55 @@ CREATE TABLE "ai_logs" (
     CONSTRAINT "ai_logs_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "scrape_targets" (
+    "id" TEXT NOT NULL,
+    "url" TEXT NOT NULL,
+    "platform" TEXT,
+    "label" TEXT,
+    "is_active" BOOLEAN NOT NULL DEFAULT true,
+    "frequency" TEXT,
+    "last_scraped_at" TIMESTAMP(3),
+    "selectors" JSONB,
+    "success_rate" DOUBLE PRECISION NOT NULL DEFAULT 95.0,
+    "total_opportunities" INTEGER NOT NULL DEFAULT 0,
+    "status" TEXT NOT NULL DEFAULT 'active',
+    "error_count" INTEGER NOT NULL DEFAULT 0,
+    "last_error" TEXT,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "scrape_targets_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "crawling_jobs" (
+    "id" TEXT NOT NULL,
+    "source_id" TEXT NOT NULL,
+    "status" TEXT NOT NULL DEFAULT 'queued',
+    "started_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "completed_at" TIMESTAMP(3),
+    "found_opportunities" INTEGER NOT NULL DEFAULT 0,
+    "processed_opportunities" INTEGER NOT NULL DEFAULT 0,
+    "errors" JSONB NOT NULL DEFAULT '[]',
+    "duration" INTEGER,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "crawling_jobs_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "crawling_settings" (
+    "id" SERIAL NOT NULL,
+    "setting_key" TEXT NOT NULL,
+    "setting_value" JSONB NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "crawling_settings_pkey" PRIMARY KEY ("id")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
 
@@ -85,6 +135,12 @@ CREATE UNIQUE INDEX "categories_name_key" ON "categories"("name");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "categories_slug_key" ON "categories"("slug");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "scrape_targets_url_key" ON "scrape_targets"("url");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "crawling_settings_setting_key_key" ON "crawling_settings"("setting_key");
 
 -- AddForeignKey
 ALTER TABLE "opportunies" ADD CONSTRAINT "opportunies_category_id_fkey" FOREIGN KEY ("category_id") REFERENCES "categories"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -100,3 +156,6 @@ ALTER TABLE "click_logs" ADD CONSTRAINT "click_logs_opportunity_id_fkey" FOREIGN
 
 -- AddForeignKey
 ALTER TABLE "ai_logs" ADD CONSTRAINT "ai_logs_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "crawling_jobs" ADD CONSTRAINT "crawling_jobs_source_id_fkey" FOREIGN KEY ("source_id") REFERENCES "scrape_targets"("id") ON DELETE CASCADE ON UPDATE CASCADE;
